@@ -20,8 +20,11 @@ DatosLimpios<-tm_map(DatosLimpios, content_transformer(stripWhitespace))
 #Se eliminan los URLs, se detiene al encontrar un espacio
 Datos<- Datos [,-Datos$reviews.sourceURLs]
 
-#se eliminan los signos de puntuación 
-DatosLimpios<-removePunctuation(Datos)
+#Se eliminan artículos, preposiciones y conjunciones (stopwords)
+DatosLimpios<-tm_map(DatosLimpios, removeWords, stopwords('english'))
+
+#se eliminarion los numeros 
+DatosLimpios<-removeNumbers(DatosLimpios)
 
 #Se realiza un vector de los datos y se convierten en volátiles para cambiar su contenido
 VectorDatos <- VectorSource(Datos)
@@ -33,6 +36,7 @@ DatosLimpios <- tm_map(DatosLimpios, content_transformer(function(x) iconv(x, to
 #Se transforman los caracteres a minúsculas
 DatosLimpios<-tm_map(DatosLimpios, content_transformer(tolower))
 
-
+#se eliminan los signos de puntuación y simbolos
+DatosLimpios<-removePunctuation(Datos)
 
 
