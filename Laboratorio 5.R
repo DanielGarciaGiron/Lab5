@@ -12,7 +12,7 @@ for (libreria in c("stringr","tm", "R.utils","openNLP","qdap","RWeka","ggplot2",
 }
 
 #---------------------- Lectura de Datos --------------------------------------------#
-Datos <- read.csv("./datos/GrammarandProductReviews.csv", stringsAsFactors = F)
+Datos <- read.csv("./GrammarandProductReviews.csv", stringsAsFactors = F)
 
 #Se realiza un vector de los datos y se convierten en volátiles para cambiar su contenido
 VectorDatos <- VectorSource(Datos)
@@ -26,3 +26,6 @@ DatosLimpios<-tm_map(DatosLimpios, content_transformer(tolower))
 
 #Se eliminan los espacios en blanco adicionales
 DatosLimpios<-tm_map(DatosLimpios, content_transformer(stripWhitespace))
+
+#Se eliminan los URLs, se detiene al encontrar un espacio
+train_raw<- train_raw[,-train_raw$reviews.sourceURLs]
