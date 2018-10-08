@@ -129,14 +129,6 @@ wordcloud(words = DFU$word, freq = DFU$freq, min.freq = 1,
 
 
 #--------------------------------- Sentiment analysis - Clasificacion de las palabras ---------------------------------------------#
-#Conversion de datos a formato tidyr para utilizar las librerias de analisis de sentimientos. Libreria = tidytext.
-#Toma la informacion del review que hizo la persona y la parte por palabras individuales.
-Data_tidy <- Datos %>%
-  unnest_tokens(word, reviews.text) %>% 
-  filter(!word %in% MP) %>% 
-  filter(!nchar(word) < 3) %>% 
-  anti_join(stop_words) 
-
 #le da formato a las tablas
 styling <- function(dat, caption) {
   kable(dat, "html", escape = FALSE, caption = caption) %>%
@@ -144,10 +136,21 @@ styling <- function(dat, caption) {
                   full_width = FALSE)
 }
 
+#Funcion de clasificacion de sentimientos
+new_sentiments <- sentiments %>% 
+  filter(lexicon != "loughran") %>% 
+  mutate( sentiment = ifelse(lexicon == "AFINN" & score >= 0, "positive",
+                             ifelse(lexicon == "AFINN" & score < 0,
+                                    "negative", sentiment))) %>%
+  group_by(lexicon) %>%
+  mutate(words_in_lexicon = n_distinct(word)) %>%
+  ungroup()
+
+
 #Toma todas las palabras y las asigna segun sean los tres lexicons disponibles
 #grafica en una tabla los resultados y da un indice de que tan acertado son los sentimientos
 #encontrados respecto a las palabras.
-Data_tidy %>%
+DFU %>%
   mutate(words_in_data = n_distinct(word)) %>%
   inner_join(new_sentiments) %>%
   group_by(lexicon, words_in_data, words_in_lexicon) %>%
@@ -161,14 +164,14 @@ Data_tidy %>%
   styling(caption = "Palabras encontradas en los Lexicons")
 
 #se crean datasets por cada uno de los lexicons.
-Data_nrc_sub <- Data_tidy %>%
+Data_nrc_sub <- DFU %>%
   inner_join(get_sentiments("nrc")) %>%
   filter(!sentiment %in% c("positive", "negative"))
 
-Data_nrc <- Data_tidy %>%
+Data_nrc <- DFU %>%
   inner_join(get_sentiments("nrc"))
 
-Data_bing <- Data_tidy %>%
+Data_bing <- DFU %>%
   inner_join(get_sentiments("bing"))
 
 
