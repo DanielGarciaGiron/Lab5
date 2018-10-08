@@ -4,7 +4,7 @@
 #------------------------------------------------------------#
 
 #----- Instalación e importación de librerias necesarias para correr el programa ----#
-for (libreria in c("stringr","tm", "R.utils","openNLP","qdap","RWeka","ggplot2", "wordcloud", "RColorBrewer")) {
+for (libreria in c("stringr","tm", "R.utils","openNLP","qdap","RWeka","ggplot2", "wordcloud", "RColorBrewer","tidyr","dplyr","tidytext","knitr","kableExtra","formattable","ggplot2","memery","magick")) {
   if (!require(libreria, character.only=T)) {
     install.packages(libreria)
     library(libreria, character.only=T)
@@ -126,3 +126,52 @@ head(DFU, 10)
 wordcloud(words = DFU$word, freq = DFU$freq, min.freq = 1,
           max.words=200, random.order=FALSE, rot.per=0.35, 
           colors=brewer.pal(8, "Dark2"))
+
+
+#--------------------------------- Sentiment analysis - Clasificacion de las palabras ---------------------------------------------#
+#Conversion de datos a formato tidyr para utilizar las librerias de analisis de sentimientos. Libreria = tidytext.
+#Toma la informacion del review que hizo la persona y la parte por palabras individuales.
+Data_tidy <- Datos %>%
+  unnest_tokens(word, reviews.text) %>% 
+  filter(!word %in% MP) %>% 
+  filter(!nchar(word) < 3) %>% 
+  anti_join(stop_words) 
+
+#le da formato a las tablas
+styling <- function(dat, caption) {
+  kable(dat, "html", escape = FALSE, caption = caption) %>%
+    kable_styling(bootstrap_options = c("striped", "condensed", "bordered"),
+                  full_width = FALSE)
+}
+
+#Toma todas las palabras y las asigna segun sean los tres lexicons disponibles
+#grafica en una tabla los resultados y da un indice de que tan acertado son los sentimientos
+#encontrados respecto a las palabras.
+Data_tidy %>%
+  mutate(words_in_data = n_distinct(word)) %>%
+  inner_join(new_sentiments) %>%
+  group_by(lexicon, words_in_data, words_in_lexicon) %>%
+  summarise(lex_match_words = n_distinct(word)) %>%
+  ungroup() %>%
+  mutate(total_match_words = sum(lex_match_words), 
+         match_ratio = lex_match_words / words_in_data) %>%
+  select(lexicon, lex_match_words,  words_in_data, match_ratio) %>%
+  mutate(lex_match_words = color_bar("lightpink")(lex_match_words),
+         lexicon = color_tile("lightgreen", "lightgreen")(lexicon)) %>%
+  styling(caption = "Palabras encontradas en los Lexicons")
+
+#se crean datasets por cada uno de los lexicons.
+Data_nrc_sub <- Data_tidy %>%
+  inner_join(get_sentiments("nrc")) %>%
+  filter(!sentiment %in% c("positive", "negative"))
+
+Data_nrc <- Data_tidy %>%
+  inner_join(get_sentiments("nrc"))
+
+Data_bing <- Data_tidy %>%
+  inner_join(get_sentiments("bing"))
+
+
+
+#--------------------------------- Sentiment analysis - Clasificacion del producto ---------------------------------------------#
+
