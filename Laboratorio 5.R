@@ -106,17 +106,6 @@ wordcloud(words = DFU$word, freq = DFU$freq, min.freq = 1,
 
 
 #--------------------------------- Sentiment analysis - Clasificacion de las palabras ---------------------------------------------#
-<<<<<<< HEAD
-=======
-#Conversion de datos a formato tidyr para utilizar las librerias de analisis de sentimientos. Libreria = tidytext.
-#Toma la informacion del review que hizo la persona y la parte por palabras individuales.
-DFU <- Datos %>%
-  unnest_tokens(word, reviews.text) %>% 
-  filter(!word %in% MP) %>% 
-  filter(!nchar(word) < 3) %>% 
-  anti_join(stop_words) 
-
->>>>>>> 45ee48be8c7232b81a3342fe217c9f3374bfd48e
 #le da formato a las tablas
 styling <- function(dat, caption) {
   kable(dat, "html", escape = FALSE, caption = caption) %>%
